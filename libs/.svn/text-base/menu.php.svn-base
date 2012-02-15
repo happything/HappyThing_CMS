@@ -1,0 +1,79 @@
+<?php
+
+/*
+ * To change this template, choose Tools | Templates
+ * and open the template in the editor.
+ */
+class Menu{
+    var $menu = array();
+    var $language = "";
+    var $section = "";
+    
+    function __construct($menu,$language,$section){
+        $this->menu = $menu;
+        $this->language = $language;
+        $this->section = $section;
+    }
+    
+    function show($menu){
+        $menu_arr = array();
+        if(array_key_exists($menu, $this->menu) && is_array($this->menu[$menu])){            
+            for($i=0; $i<count($this->menu[$menu]);$i++){
+                if(!is_array($this->menu[$menu][$i][$this->language])){
+                    //The menu is not in this language
+                    return false;
+                }
+                array_push($menu_arr,$this->menu[$menu][$i][$this->language]);                
+            }
+        } else {
+            return false;
+            //Menu doesn't exist
+        }
+        return $this->transform($menu_arr);        
+    }
+    
+    function transform($menu_arr){
+        $html = "<ul>";
+        for($i=0; $i<count($menu_arr);$i++){
+            $key = array_keys($menu_arr[$i]);
+            if(is_array($menu_arr[$i][$key[0]])){
+                $html .= "<li class='menu_element list_".$key[0]."'><a href='' onclick='return false;'>".$key[0]."</a><ul class='sub_menu_".$key[0]."'>";
+                for($j=0; $j<count($menu_arr[$i][$key[0]]); $j++){
+                    $sub_key = array_keys($menu_arr[$i][$key[0]]);
+                    $html .= "<li class='menu_subelement sublist_".$this->class_format($sub_key[$j])."'><a href='".$menu_arr[$i][$key[0]][$sub_key[$j]]."'>".$sub_key[$j]."</a></li>";
+                }
+                $html .= "</ul></li>";    
+            } else {
+                //$this->section;
+                $menu_item = str_replace(" ", "_", $key[0]);
+                $selected = "";
+                if($this->section == $menu_item) $selected = "selected";
+                else if($this->section == "" && $i==0) $selected = "selected";
+                $html .= "<li class='menu_element list_".$this->class_format($key[0])." ".$selected."'><a href='".$menu_arr[$i][$key[0]]."'>".$key[0]."</a></li>";                
+            }            
+        }
+        $html .= "</ul>";
+        
+        return $html;
+    }
+    
+    function class_format($class){
+        
+        $signs = array(".","#","!","@","$","%","&","¬","(",")","=",":",";","?","¿");
+        $class = str_replace($signs, "", $class);
+        $class = str_replace(" ","_",$class);
+        $class = str_replace(utf8_decode("á"),"a",$class);
+        $class = str_replace(utf8_decode("é"),"e",$class);
+        $class = str_replace(utf8_decode("í"),"i",$class);
+        $class = str_replace(utf8_decode("ó"),"o",$class);
+        $class = str_replace(utf8_decode("ú"),"u",$class);
+        $class = str_replace(utf8_decode("Á"),"A",$class);
+        $class = str_replace(utf8_decode("É"),"E",$class);
+        $class = str_replace(utf8_decode("Í"),"I",$class);
+        $class = str_replace(utf8_decode("Ó"),"O",$class);
+        $class = str_replace(utf8_decode("Ú"),"U",$class);
+        
+        return $class;
+    }
+}
+?>

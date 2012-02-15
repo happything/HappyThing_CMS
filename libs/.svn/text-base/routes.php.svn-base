@@ -1,0 +1,39 @@
+<?php
+
+/*
+ * To change this template, choose Tools | Templates
+ * and open the template in the editor.
+ */
+
+class Routes{
+    var $url = "";
+    var $routes = array();
+    var $languages = "";
+    
+    function __construct($url,$routes,$languages){
+        $this->url = $url;
+        $this->routes = $routes;
+        $this->languages = $languages;
+    }
+    
+    function search(){
+        $keys = array_keys($this->routes);
+        $return = "";        
+        for($i=0; $i<count($keys); $i++){
+            $url_keys = array_keys($this->routes[$keys[$i]]);            
+            for($j=0; $j<count($url_keys); $j++){
+                $language_keys = array_keys($this->routes[$keys[$i]]);
+                if($this->routes[$keys[$i]][$language_keys[$j]] == $this->url) {                    
+                    for($k=0; $k<count($language_keys);$k++){
+                        if($language_keys[$j] == $this->languages) {                            
+                            return $keys[$i];
+                        }                        
+                    }
+                    
+                } 
+            }
+        }
+    }
+}
+
+?>
