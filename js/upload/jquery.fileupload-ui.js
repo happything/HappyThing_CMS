@@ -211,7 +211,7 @@
                 that._transitionCallback(
                     data.context.removeClass('in'),
                     function (node) {
-                        node.remove();
+                        node.fadeOut(500, function(){ node.remove() });
                     }
                 );
             }
