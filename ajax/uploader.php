@@ -428,7 +428,7 @@ if(isset ($_REQUEST['seccion'])){
     if(!is_dir($upload_dir))
         mkdir ($upload_dir, 0777);
         
-    if($seccion == 'media'){
+    if($seccion == 'media' || $seccion == 'user'){
         $options = array(
             'upload_dir'     => (is_dir($upload_dir.'/files/')) ? $upload_dir.'/files/' : mkdir($upload_dir.'/files/', 0777),
             'upload_url'     => getFullUrl().'/img/cms/'.$seccion.'/files/',
