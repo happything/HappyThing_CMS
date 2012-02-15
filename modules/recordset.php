@@ -73,7 +73,7 @@
         <a href="#" onclick="enable_all(1); return false;" class="main-options-option main-options-enable btn btn-info btn-small"><i class="icon-ok icon-white"></i> Enable</a>
         
         <?php } if((isset($options["disable"]) && $options["disable"] != false) || (!isset($options["disable"]))){ ?>
-        <a href="#" onclick="enable_all(-1); return false;" class="main-options-option main-options-disable btn btn-warning btn-small"><i class="icon-remove icon-white"></i> Disable</a>
+        <a href="#" onclick="enable_all(-1); return false;" class="main-options-option main-options-disable btn btn-small" style="color:#333;"><i class="icon-remove icon-black"></i> Disable</a>
         <input type="text" id="FilterTextBox" placeholder="Filtro de busqueda" class="span6" style="margin-bottom: 0;"/>
     <?php
         }
