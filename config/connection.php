@@ -8,7 +8,7 @@
 $connection = array(
     "server"=>"localhost",
     "username"=>"root",
-    "password"=>"anclastudio",
+    "password"=>"Scartissue",
     "db_name"=>"cms_test"
 );
 
