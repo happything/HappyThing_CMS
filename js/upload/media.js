@@ -44,7 +44,6 @@ $(function(){
                             "<div class='media-actions'>"+
                                 "<span class='delete'><button class='action delete'>Delete</button></span>"+
                                 "<span class='action previewing'><a href='#' rel='gallery'>Preview</a></span>"+
-                                "<span class='action rename'><a href='#'>Rename</a></span>"+
                             "</div>"+
                             "<img src='' alt='' />"+
                         "</div>"+
