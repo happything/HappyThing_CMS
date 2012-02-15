@@ -19,8 +19,8 @@
                $forms->input('password','Password',array('type'=>'password','class'=>'required input-xlarge'));
                $forms->input('confirmPassword', 'Confirm password', array('type' => 'password', 'class' => 'input-xlarge'));
                $forms->select("user_types_id", "User type", null, null, array("link"=>$link,"table"=>"user_types","value_field"=>"id","show_field"=>"name"),array("required"=>true,'class'=>'input-xlarge'));
-               /*$forms->input('archivos',null,array('type'=>'file'));
-               $forms->input('seccion',null,array('type' => 'hidden', 'value' => 'propiedades'));*/
+               $forms->input('archivos',null,array('type'=>'file'));
+               $forms->input('seccion',null,array('type' => 'hidden', 'value' => 'propiedades'));
                $forms->input('enabled',null,array('type' => 'hidden', 'value' => '1'));
                $forms->input('orden', null, array('type' => 'hidden', 'value' => '10000'));
                $forms->input('date', null, array('type' => 'hidden', 'value' => date('Y-m-d')));

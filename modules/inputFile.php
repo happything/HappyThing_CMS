@@ -1,4 +1,4 @@
-<div class="control-group file hide">
+<div class="control-group file">
     <div class="controls">
         <div>
             <div class="fileupload-buttonbar">
