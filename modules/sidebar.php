@@ -37,7 +37,7 @@
         echo $forms->end(); 
     ?>
 </div>
-<!--<div id="modal-gallery" class="modal modal-gallery hide fade">
+<div id="modal-gallery" class="modal modal-gallery hide fade">
     <div class="modal-header">
         <a class="close" data-dismiss="modal">&times;</a>
         <h3 class="modal-title"></h3>
@@ -64,10 +64,9 @@
 <script src="http://blueimp.github.com/JavaScript-Load-Image/load-image.min.js"></script>
 <script src="/js/bootstrap/bootstrap.min.js"></script>
 <script src="/js/bootstrap/bootstrap-image-gallery.min.js"></script>
-<script src="/js/upload/application.js"></script>
+<script src="/js/upload/sections.js"></script>
 <script src="/js/upload/jquery.iframe-transport.js"></script>
 <script src="/js/upload/jquery.fileupload.js"></script>
-<script src="/js/upload/jquery.fileupload-ui.js"></script>-->
+<script src="/js/upload/jquery.fileupload-ui.js"></script>
 <!-- The XDomainRequest Transport is included for cross-domain file deletion for IE >= 8 -->
-<!--<script src="/js/upload/jquery.xdr-transport.js"></script>
-<script src="/js/tablednd.js"></script>-->
+<script src="/js/upload/jquery.xdr-transport.js"></script>

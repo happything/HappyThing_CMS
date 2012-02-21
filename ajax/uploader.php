@@ -16,20 +16,23 @@ class UploadHandler
 {
     private $options;
     private $seccion;
+    private $record;
     
-    function __construct($options=null, $seccion = null) {
+    function __construct($options=null, $seccion = null, $record = null) {
         if($seccion)
             $this->seccion = $seccion;
+        if($record)
+            $this->record = $record;
         
         $this->options = array(
             'script_url' => $this->getFullUrl().'/ajax/'.basename(__FILE__),
             'upload_dir' => $_SERVER['DOCUMENT_ROOT'].'/img/cms/files/',
             'upload_url' => $this->getFullUrl().'/img/cms/files/',
-            'param_name' => 'files',
+            'param_name' => 'archivos',
             // The php.ini settings upload_max_filesize and post_max_size
             // take precedence over the following max_file_size setting:
-            'max_file_size' => null,
-            'min_file_size' => 1,
+            'max_file_size' => 4000000,
+            'min_file_size' => 10000,
             'accept_file_types' => '/.+$/i',
             'max_number_of_files' => null,
             // Set the following option to false to enable non-multipart uploads:
@@ -101,7 +104,7 @@ class UploadHandler
                 }
             }
             $file->delete_url = $this->options['script_url']
-                .'?file='.rawurlencode($file->name)."&seccion=".$this->seccion;
+                .'?file='.rawurlencode($file->name)."&seccion=".$this->seccion.'&insert_id='.$this->record;
             $file->delete_type = 'DELETE';
             return $file;
         }
@@ -115,7 +118,7 @@ class UploadHandler
         )));
     }
        
-    private function create_croped_image($file_name, $options){
+    private function create_cropped_image($file_name, $options){
         $file_path = $this->options['upload_dir'].$file_name;
         $new_file_path = $options['upload_dir'].$file_name;
         list($img_width, $img_height) = @getimagesize($file_path);
@@ -133,6 +136,7 @@ class UploadHandler
         $x_mid = $new_width / 2;
         $y_mid = $new_height / 2;
         $new_img = @imagecreatetruecolor(round($new_width), round($new_height));
+        $thumb = @imagecreatetruecolor($options['width'], $options['height']);
         switch(strtolower(substr(strrchr($file_name, '.'), 1))){
             case 'jpg':
             case 'jpeg':
@@ -141,6 +145,7 @@ class UploadHandler
                 break;
             case 'gif':
                 @imagecolortransparent($new_img, @imagecolorallocate($new_img, 0, 0, 0));
+                @imagecolortransparent($thumb, @imagecolorallocate($thumb, 0, 0, 0));
                 $src_img = @imagecreatefromgif($file_path);
                 $write_image = 'imagegif';
                 break;
@@ -148,6 +153,9 @@ class UploadHandler
                 @imagecolortransparent($new_img, @imagecolorallocate($new_img, 0, 0, 0));
                 @imagealphablending($new_img, false);
                 @imagesavealpha($new_img, true);
+                @imagecolortransparent($thumb, @imagecolorallocate($thumb, 0, 0, 0));
+                @imagealphablending($thumb, false);
+                @imagesavealpha($thumb, true);
                 $src_img = @imagecreatefrompng($file_path);
                 $write_image = 'imagepng';
                 break;
@@ -155,7 +163,6 @@ class UploadHandler
                 $src_img = $image_method = null;
         }
         @imagecopyresampled($new_img, $src_img, 0, 0, 0, 0, $new_width, $new_height, $img_width, $img_height);
-        $thumb = @imagecreatetruecolor($options['width'], $options['height']);
         $success = $src_img && @imagecopyresampled($thumb, $new_img, 0, 0, ($x_mid-($options['width']/2)), ($y_mid-($options['height']/2)), $options['width'], $options['height'], $options['width'], $options['height']) && $write_image($thumb, $new_file_path);
         @imagedestroy($src_img);
         @imagedestroy($new_img);
@@ -321,7 +328,7 @@ class UploadHandler
             		}
                 $file->url = $this->options['upload_url'].rawurlencode($file->name);
                 foreach($this->options['image_versions'] as $version => $options) {
-                    if ($this->create_scaled_image($file->name, $options)) {
+                    if ($this->create_cropped_image($file->name, $options)) {
                         $file->{$version.'_url'} = $options['upload_url']
                             .rawurlencode($file->name);
                     }
@@ -332,7 +339,7 @@ class UploadHandler
             }
             $file->size = $file_size;
             $file->delete_url = $this->options['script_url']
-                .'?file='.rawurlencode($file->name).'&seccion='.$this->seccion;
+                .'?file='.rawurlencode($file->name).'&seccion='.$this->seccion.'&insert_id='.$this->record;
             $file->delete_type = 'DELETE';
         } else {
             $file->error = $error;
@@ -387,6 +394,10 @@ class UploadHandler
                 isset($upload['error']) ? $upload['error'] : null
             );
         }
+        
+        if($this->record !== null && $this->seccion != 'media')
+            $this->insert_db($info);
+        
         header('Vary: Accept');
         $json = json_encode($info);
         $redirect = isset($_REQUEST['redirect']) ?
@@ -408,6 +419,7 @@ class UploadHandler
         $file_name = isset($_REQUEST['file']) ?
             basename(stripslashes($_REQUEST['file'])) : null;
         $file_path = $this->options['upload_dir'].$file_name;
+        $file_dir = $this->options['upload_url'].$file_name;
         $success = is_file($file_path) && $file_name[0] !== '.' && unlink($file_path);
         if ($success) {
             foreach($this->options['image_versions'] as $version => $options) {
@@ -416,67 +428,93 @@ class UploadHandler
                     unlink($file);
                 }
             }
+            if($this->record !== null && $this->seccion != 'media')
+                $this->delete_db($file_dir);
         }
         header('Content-type: application/json');
         echo json_encode($success);
     }
+    
+    function insert_db($info){
+        include_once '../config/connection.php';
+        $i = 1;
+        foreach($info as $index){
+            $query = "INSERT INTO images SET url = '".$index->url."', orden = ".$i.", enabled = 1, parent_id = ".$this->record.", section = '".$this->seccion."', title='".$index->name."'";
+            mysql_query($query, $link);
+            $i++;
+        }
+    }
+    
+    function delete_db($info){
+        include_once '../config/connection.php';
+        $query = "DELETE FROM images WHERE url = '".$info."' AND parent_id = ".$this->record;
+        mysql_query($query, $link);
+    }
 }
 
+//Check if there is a section
 if(isset ($_REQUEST['seccion'])){
+    //If so, init the vars for the options with the correct directories
     $seccion = $_REQUEST['seccion'];
     $upload_dir = $_SERVER['DOCUMENT_ROOT'].'/img/cms/'.$seccion;
+    $flag = 0;
+    
+    //Will be images in a record?
+    if(isset ($_REQUEST['insert_id'])){
+        //Overwrite the vars with new values
+        $dir = $_REQUEST['insert_id'];
+        $upload_dir = $_SERVER['DOCUMENT_ROOT'].'/img/cms/'.$seccion."/".$dir;
+        $flag = 1;
+    }
+    
     if(!is_dir($upload_dir))
         mkdir ($upload_dir, 0777);
         
-    if($seccion == 'media' || $seccion == 'user'){
-        $options = array(
-            'upload_dir'     => (is_dir($upload_dir.'/files/')) ? $upload_dir.'/files/' : mkdir($upload_dir.'/files/', 0777),
-            'upload_url'     => getFullUrl().'/img/cms/'.$seccion.'/files/',
-            'image_versions' => array(
-                'thumbnail' => array(
-                    'upload_dir' => (is_dir($upload_dir.'/thumbnails/')) ? $upload_dir.'/thumbnails/' : mkdir($upload_dir.'/thumbnails/', 0777),
-                    'upload_url' => getFullUrl().'/img/cms/'.$seccion.'/thumbnails/'
-                    
-                )
-            )
-        );
-    }
-    //If there are other sections that need thumbnails whit its own sizes put it in an elseif
-    //NOTE: Don't forget to create the new directories in which will be saved the thumbnails recently created
+    
+    $options = array(
+        'upload_dir'     => (is_dir($upload_dir.'/files/')) ? $upload_dir.'/files/' : createDir($upload_dir.'/files/'),
+        'upload_url'     => ($flag == 0) ? getFullUrl().'/img/cms/'.$seccion.'/files/' : getFullUrl().'/img/cms/'.$seccion.'/'.$dir.'/files/',
+        'image_versions' => array(
+            'thumbnail'  => array(
+                'upload_dir' => (is_dir($upload_dir.'/thumbnails/')) ? $upload_dir.'/thumbnails/' : createDir($upload_dir.'/thumbnails/'),
+                'upload_url' => ($flag == 0) ? getFullUrl().'/img/cms/'.$seccion.'/thumbnails/' : getFullUrl().'/img/cms/'.$seccion.'/'.$dir.'/thumbnails/'
+            ),
+        )
+    );
+    //If there are other sections that need thumbnails whit its own sizes put it in an if
     //For example
-    /*elseif( $seccion == 'galeria'){
-        $options = array(
-            'upload_dir'     => (is_dir($upload_dir.'/files/')) ? $upload_dir.'/files/' : mkdir($upload_dir.'/files/', 0777),
-            'upload_url'     => getFullUrl().'/img/cms/'.$seccion.'/files/',
-            'image_versions' => array(
-                'thumbnail' => array(
-                    'upload_dir' => (is_dir($upload_dir.'/thumbnails/')) ? $upload_dir.'/thumbnails/' : mkdir($upload_dir.'/thumbnails/', 0777),
-                    'upload_url' => getFullUrl().'/img/cms/'.$seccion.'/thumbnails/'
-                    
-                ),
-                'thumb_small' => array(
-                    'upload_dir' => (is_dir($upload_dir.'/thumbnails/thumb_small/')) ? $upload_dir.'/thumbnails/thumb_small/' : mkdir($upload_dir.'/thumbnails/thumb_small/', 0777),
-                    'upload_url' => getFullUrl().'/img/cms/'.$seccion.'/thumbnails/thumb_small/',
-                    'max_width'      => 50,
-                    'max_height'     => 50,
-                ),
-                'thumb_big' => array(
-                    'upload_dir' => (is_dir($upload_dir.'/thumbnails/thumb_big/')) ? $upload_dir.'/thumbnails/thumb_big/' : mkdir($upload_dir.'/thumbnails/thumb_big/', 0777),
-                    'upload_url' => getFullUrl().'/img/cms/'.$seccion.'/thumbnails/thumb_big/',
-                    'max_width'      => 250,
-                    'max_height'     => 250,
-                ),
+    if($seccion == 'user'){
+        $image_versions = array(
+            'thumb_small' => array(
+                'upload_dir' => (is_dir($upload_dir.'/thumbnails/thumb_small/')) ? $upload_dir.'/thumbnails/thumb_small/' : createDir($upload_dir.'/thumbnails/thumb_small/'),
+                'upload_url' => ($flag == 0) ? getFullUrl().'/img/cms/'.$seccion.'/thumbnails/thumb_small/' : getFullUrl().'/img/cms/'.$seccion.'/'.$dir.'/thumbnails/thumb_small/',
+                'max_width'      => 50,
+                'max_height'     => 50,
+                'width'          => 50,
+                'height'         => 50,
+            ),
+            'thumb_big' => array(
+                'upload_dir' => (is_dir($upload_dir.'/thumbnails/thumb_big/')) ? $upload_dir.'/thumbnails/thumb_big/' : createDir($upload_dir.'/thumbnails/thumb_big/'),
+                'upload_url' => ($flag == 0) ? getFullUrl().'/img/cms/'.$seccion.'/thumbnails/thumb_big/' : getFullUrl().'/img/cms/'.$seccion.'/'.$dir.'/thumbnails/thumb_big/',
+                'max_width'      => 250,
+                'max_height'     => 250,
+                'width'      => 250,
+                'height'     => 250,
             )
         );
-    }*/
-    $upload_handler = new UploadHandler($options, $seccion);
+        $image_versions = array_merge($options['image_versions'], $image_versions);
+        $options['image_versions'] = $image_versions;
+    }else {
+        $dir = null;
+    }
+    $upload_handler = new UploadHandler($options, $seccion, $dir);
 }else{
     $upload_handler = new UploadHandler();
 }
 
 header('Pragma: no-cache');
 header('Cache-Control: private, no-cache');
-header('Content-Disposition: inline; filename="files.json"');
+header('Content-Disposition: inline; filename="archivos.json"');
 header('X-Content-Type-Options: nosniff');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: OPTIONS, HEAD, GET, POST, PUT, DELETE');
@@ -501,9 +539,14 @@ switch ($_SERVER['REQUEST_METHOD']) {
 
 function getFullUrl() {
 return
-                (isset($_SERVER['HTTPS']) ? 'https://' : 'http://').
-                (isset($_SERVER['REMOTE_USER']) ? $_SERVER['REMOTE_USER'].'@' : '').
-                (isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : ($_SERVER['SERVER_NAME'].
-                (isset($_SERVER['HTTPS']) && $_SERVER['SERVER_PORT'] === 443 ||
-                $_SERVER['SERVER_PORT'] === 80 ? '' : ':'.$_SERVER['SERVER_PORT'])));
+    (isset($_SERVER['HTTPS']) ? 'https://' : 'http://').
+    (isset($_SERVER['REMOTE_USER']) ? $_SERVER['REMOTE_USER'].'@' : '').
+    (isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : ($_SERVER['SERVER_NAME'].
+    (isset($_SERVER['HTTPS']) && $_SERVER['SERVER_PORT'] === 443 ||
+    $_SERVER['SERVER_PORT'] === 80 ? '' : ':'.$_SERVER['SERVER_PORT'])));
+}
+
+function createDir($dir){
+    mkdir($dir, 0777);
+    return $dir;
 }

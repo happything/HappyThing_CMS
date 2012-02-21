@@ -69,7 +69,7 @@
                     $return["success"] = 1;
                     $return["insert_id"] = mysql_insert_id($this->link);
                     $return["error"] = 0;
-                    $return["query"] = $sql;
+                    //$return["query"] = $sql;
                     
                     //Creating a PO file using the selected fields                    
                     /*$validate_keys = array_keys($validate);
@@ -85,7 +85,7 @@
                     $return["success"] = 0;
                     $return["insert_id"] = -1;
                     $return["error"] = mysql_error($this->link);
-                    $return["query"] = $sql;
+                    //$return["query"] = $sql;
                 }
                 
                 return $return;
@@ -181,12 +181,12 @@
             if($result !== false){
                 $return["success"] = 1;
                 $return["result"] = $result;
-                $return["query"] = $sql;
+                //$return["query"] = $sql;
                 $return["error"] = 0;
             } else {
                 $return["success"] = 0;
                 $return["result"] = $result;
-                $return["query"] = $sql;
+                //$return["query"] = $sql;
                 $return["error"] = mysql_error($this->link);
             }
             

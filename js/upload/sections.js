@@ -68,20 +68,24 @@ $(function(){
           }
       }
    });
-      
-   $("#media-form").fileupload({
+   
+   var form = $('form').attr('data-form');
+   
+   $("#"+form+"-form").fileupload({
        url      : '/ajax/uploader.php'
    });
    
    //Settings
-   $("#media-form").fileupload('option',{
+   $("#"+form+"-form").fileupload('option',{
        maxFileSize      : 4000000,
        minFileSize      : 10000,
        acceptFileTypes  : /(\.|\/)(gif|jpe?g|png)$/i,
        previewMaxHeight : 180,
        previewMaxWidth  : 180,
        previewAsCanvas  : false,
+       formData         : insert_id,
        paramName        : 'archivos[]',
+       singleFileUploads: false,
        start            : function(){
            $('img.loader').css('display', 'inline');
            $('.preview img').css('opacity', '0.8');
@@ -89,10 +93,16 @@ $(function(){
        stop             : function(){
            $('.preview img').css('opacity', '1');
        }
+   }).bind('fileuploadadd', function(e, data){
+       if(global_data !== null){
+           global_data = data;
+       }
+   }).bind('fileuploaddone', function(e, data){
+      window.location = "http://local.templatemaker/happycms/users";
    });
    
-   $.getJSON('/ajax/uploader.php', {'seccion' : 'media'}, function(files){
-       var fu = $("#media-form").data('fileupload'),
+   $.getJSON('/ajax/uploader.php', {'seccion' : form, 'insert_id' : insert_id}, function(files){
+       var fu = $("#"+form+"-form").data('fileupload'),
            template;
        fu._adjustMaxNumberOfFiles(-files.length);
        template = fu._renderDownload(files).appendTo($('.files'));
