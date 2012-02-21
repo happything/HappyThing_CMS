@@ -34,6 +34,8 @@
                 if(isset($options["method"])) $return .= "method='".$options["method"]."' "; else $return .= "method='POST' ";
                 //If is not null class is "form-horizontal"
                 if(isset($options["class"])) $return .= "class='".$options['class']."' "; else $return .= "class='form-horizontal' ";
+                //If is not null data-form attribute is "form"
+                if(isset($options['data-form'])) $return .= "data-form='".$options['data-form']."' "; else $return .= "data-form='form' ";
             } else {
                 $return .= " action = '' method = 'post' ";
             }
@@ -84,7 +86,7 @@
                     $input = ob_get_clean() ;
                 }elseif(isset ($attributes['type']) && $attributes['type'] == 'hidden'){
                     if(isset ($attributes['value'])){
-                        $input = "<input type='hidden' name='".$name."' value='".$attributes['value']."' />";
+                        $input = "<input id='".$name."' type='hidden' name='".$name."' value='".$attributes['value']."' />";
                     }else{
                         $input = "Falta la opción value";
                     }
@@ -288,7 +290,7 @@
                 if(isset($attributes["value"])) $input .= "value='".$attributes["value"]."' "; else $input .= "value='Save changes'";
                 if(isset($attributes["styles"])) $input .= "styles='".$attributes["styles"]."' ";
             } else {
-                $input .= "type='submit' value='Save changes' id='send'";
+                $input .= "type='submit' value='Save' id='send'";
             }
             
             $input .= " class='btn btn-primary submit' />";

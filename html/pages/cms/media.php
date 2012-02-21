@@ -13,7 +13,7 @@
 <![endif]-->
 <h1 class="recordset">Media files</h1>
 <p>Here are all your images ready for use on your news or blog (If you have any of this serves as a media folder). Use this area to manage the images correctly, is in your hands.</p>
-<form id="media-form" method="post" action="/ajax/uploader.php">
+<form id="media-form" method="post" action="/ajax/uploader.php" data-form="media">
     <div class="control-group">
         <div class="file-input">
             <div>

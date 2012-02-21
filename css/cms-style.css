@@ -120,12 +120,13 @@ background: linear-gradient(top, #0199ca 0%,#53cbf1 0%,#05abe0 100%); /* W3C */ 
 
 .main-content .mediaInputFile{ padding: 10px; }
 .main-content .media-list{ border: 3px solid #e7e7e7; padding: 10px 0; -webkit-border-radius: 3px; -moz-border-radius: 3px; -o-border-radius: 3px; border-radius: 3px; margin-left: auto; }
+.main-content .content .media-list{ border: none; padding-left: 145px; padding-right: 145px; }
 .main-content .media-list li{ display: block; float: left; margin: 0 0 10px 10px; position: relative; }
 .main-content .media-list li a{ margin: 0; float: none; display: inline-block; border: none; border-radius: 0; box-shadow: 0 0 0 transparent; padding: 0; }
 .main-content .media-list .preview{ border: 1px solid #DDDDDD; border-radius: 4px; box-shadow: 0 1px 1px rgba(0, 0, 0, 0.075); padding: 4px 4px 0 4px; position: relative; } 
 .main-content .preview img{ height: 100px; width: 100px; }
 .main-content .media-list .preview img.loader{ left: 45%;  position: absolute; top: 45%; height: auto; width: auto; }
-.main-content .media-list .preview .media-actions{ display: none; background: rgba(0,0,0,0.8); position: absolute; top: 0; left: 0; width: 100%; padding-top: 50%; height: 55%; border-radius: 4px; }
+.main-content .media-list .preview .media-actions{ display: none; background: rgba(0,0,0,0.8); position: absolute; top: 0; left: 0; width: 100%; padding-top: 60%; height: 45%; border-radius: 4px; }
 .media-actions .action{ display: block; margin-left: 10px; font-size: 11px; cursor: pointer; }
 .media-actions .action:hover{ text-decoration: underline; }
 .media-actions .delete{ color: #ff0000; border: none; background: none; padding: 0; }
